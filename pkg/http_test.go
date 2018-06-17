@@ -38,39 +38,6 @@ func request(method string, url string, data string) (*http.Response) {
 	return response
 }
 
-func AppHandler(t *testing.T) {
-
-	ts := httptest.NewServer(http.HandlerFunc(Handler))
-	defer ts.Close()
-
-	res := request("GET", ts.URL+"/resource", "")
-
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var j []interface{}
-
-	err = json.Unmarshal(body, &j)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(j) == 0 {
-		log.Fatal("Expected to get 2 results")
-	}
-
-	res = request("PUT", ts.URL+"/resource", "{\"test\":\"added from test\", \"test_2\": \"dfdf\"}")
-
-	if res.StatusCode != 201 {
-		log.Fatal(err)
-	}
-	res = request("POST", ts.URL+"/resource/1", "{\"test\":\"modified\", \"test_2\": \"dfdf\"}")
-	res = request("DELETE", ts.URL+"/resource/17", "{\"test\":\"added from test\", \"test_2\": \"dfdf\"}")
-
-}
 
 func check(err error) {
 	if err != nil {
@@ -197,10 +164,11 @@ func TestAppHandlePOST(t *testing.T) {
 	}
 
 
-	//res = request("POST", ts.URL+"/veil_test_not_exist/1", "{\"test_field_1\":\"t\"}")
-	//if res.StatusCode != 404 {
-	//	log.Fatal(fmt.Sprint("GET expected a 404, got ", res.StatusCode))	}
-	//
+	res = request("POST", ts.URL+"/veil_test_not_exist/1", "{\"test_field_1\":\"t\"}")
+	if res.StatusCode != 404 {
+		log.Fatal(fmt.Sprint("GET expected a 404, got ", res.StatusCode))
+	}
+
 	//res = request("POST", ts.URL+"/veil_test_resource/3", "{\"test_field_1\":\"t\"}")
 	//if res.StatusCode != 404 {
 	//	log.Fatal(fmt.Sprint("GET expected a 400, got ", res.StatusCode))
@@ -208,6 +176,43 @@ func TestAppHandlePOST(t *testing.T) {
 }
 
 
+func TestAppHandleDELETE(t *testing.T) {
+
+	initTestTable()
+
+	ts := httptest.NewServer(http.HandlerFunc(Handler))
+	defer ts.Close()
+
+
+	res := request("DELETE", ts.URL+"/veil_test_resource/1", "{\"test_field_1\":\"123\", \"test_field_2\":\"123\"}")
+
+	if res.StatusCode != 200 {
+		log.Fatal(fmt.Sprint("POST expected a 200, got ", res.StatusCode))
+	}
+
+
+
+	//body, err := ioutil.ReadAll(res.Body)
+	//res.Body.Close()
+	//
+	//check(err)
+	//
+	//var j Records
+	//
+	//err = json.Unmarshal(body, &j)
+	//check(err)
+	//
+	//if j[0]["test_field_1"] != "123" {
+	//	log.Fatal("Record not properly updated")
+	//}
+	//
+	//
+	//res = request("POST", ts.URL+"/veil_test_not_exist/1", "{\"test_field_1\":\"t\"}")
+	//if res.StatusCode != 404 {
+	//	log.Fatal(fmt.Sprint("GET expected a 404, got ", res.StatusCode))
+	//}
+
+}
 
 
 

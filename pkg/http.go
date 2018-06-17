@@ -46,7 +46,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 		resource := Resource{segments[len(segments)-1]}
 
-		s, err := storage.Read(resource)
+		result, err := storage.Read(resource)
 
 		if err != nil {
 			respond(w, err.Code, err.Message)
@@ -54,7 +54,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(200)
 			enc := json.NewEncoder(w)
-			enc.Encode(s)
+			enc.Encode(result.Data)
 		}
 
 	case "PUT":
@@ -94,7 +94,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		resource := Resource{segments[len(segments)-2]}
 		result, err := storage.Update(resource, r)
 		if err != nil {
-			respond(w, 400, "update failed")
+			respond(w, err.Code, err.Message)
 			return
 		}
 
@@ -111,7 +111,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		resource := Resource{segments[len(segments)-2]}
 		result, err := storage.Delete(resource, r)
 		if err != nil {
-			respond(w, 400, "delete failed")
+			respond(w, err.Code, err.Message)
 			return
 		}
 
@@ -122,9 +122,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		enc.Encode(m)
 
 	case "OPTIONS":
-		print("Dddfdf")
+		respond(w,200,"")
 	default:
-		print("wtf")
+		respond(w,400,"Unsupported method")
 
 	}
 

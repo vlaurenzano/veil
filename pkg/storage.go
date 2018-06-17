@@ -38,9 +38,9 @@ type Records []Record
 //Result abstracts the database result
 type Result struct {
 	Data    Records //if the db returns data it will be reflected here
-	Created int     //if the db inserts data it will be reflected here
-	Updated int     //if the db updates data it will be reflected here
-	Deleted int     //if the db deletes data it will be reflected here
+	Created int64     //if the db inserts data it will be reflected here
+	Updated int64     //if the db updates data it will be reflected here
+	Deleted int64     //if the db deletes data it will be reflected here
 }
 
 //our storage factory

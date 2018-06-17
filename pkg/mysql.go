@@ -13,7 +13,6 @@ type MySqlStorage struct {
 
 func (m *MySqlStorage) dbConnect() (db *sql.DB, err *StorageError) {
 	db, e := sql.Open("mysql", m.ConnectionString)
-	defer db.Close()
 	err = interpretMysqlError(e)
 	if err != nil {
 		return nil, err
@@ -21,7 +20,7 @@ func (m *MySqlStorage) dbConnect() (db *sql.DB, err *StorageError) {
 	return db, nil
 }
 
-//interprets a mysql error
+//interprets a mysql error and returns it as a Storage Error
 func interpretMysqlError(err error) (*StorageError) {
 	if err != nil {
 		switch err.(type) {
@@ -80,12 +79,13 @@ func (m *MySqlStorage) Read(resource Resource) (result *Result, err *StorageErro
 	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
 	stmt, e := db.Prepare(sqlString)
-	defer stmt.Close()
 	if err = interpretMysqlError(e); err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
 
 	rows, e := stmt.Query()
 	if err = interpretMysqlError(e); err != nil {
@@ -127,7 +127,6 @@ func (m *MySqlStorage) Read(resource Resource) (result *Result, err *StorageErro
 
 		tableData = append(tableData, entry)
 	}
-
 	return &Result{Data: tableData}, nil
 }
 
@@ -155,31 +154,41 @@ func (m *MySqlStorage) Update(resource Resource, record Record) (*Result, *Stora
 		return nil, err
 	}
 
-	_, e = stmt.Exec(append(values, record["id"])...)
+	r, e := stmt.Exec(append(values, record["id"])...)
+	if err = interpretMysqlError(e); err != nil {
+		return nil, err
+	}
+
+	rows, e := r.RowsAffected()
+	if err = interpretMysqlError(e); err != nil {
+		return nil, err
+	}
+
+	return &Result{Updated:rows}, nil
+}
+
+func (m *MySqlStorage) Delete(resource Resource, record Record) (*Result, *StorageError) {
+
+	db, err := m.dbConnect()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	sql := fmt.Sprintf("DELETE FROM %s WHERE id=?;", resource.Identifier)
+	stmt, e := db.Prepare(sql)
 
 	if err = interpretMysqlError(e); err != nil {
 		return nil, err
 	}
 
-
-	return &Result{Updated:1}, nil
-}
-
-func (m *MySqlStorage) Delete(resource Resource, record Record) (*Result, *StorageError) {
-
-	db, _ := sql.Open("mysql", m.ConnectionString)
-	defer db.Close()
-
-	sql := fmt.Sprintf("DELETE FROM %s WHERE id=?;", resource.Identifier)
-	stmt, err := db.Prepare(sql)
-
-	if err != nil {
-		panic(err.Error())
+	r, e := stmt.Exec(record["id"])
+	if err = interpretMysqlError(e); err != nil {
+		return nil, err
 	}
-
-	_, err = stmt.Exec(record["id"])
-	if err != nil {
-		panic(err.Error())
+	rows, e := r.RowsAffected()
+	if err = interpretMysqlError(e); err != nil {
+		return nil, err
 	}
-	return &Result{Deleted:1}, nil
+	return &Result{Deleted:rows}, nil
 }
