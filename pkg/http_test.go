@@ -80,7 +80,7 @@ func check(err error) {
 
 func initTestTable() {
 
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/veil")
+	db, err := sql.Open("mysql", Config().ConnectionString)
 	defer db.Close()
 
 	if err != nil {
@@ -97,7 +97,13 @@ func initTestTable() {
 		PRIMARY KEY (id)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 	check(err)
+
+	_, err = db.Exec("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value 1', 'test value 1');")
+	check(err)
+	_, err = db.Exec("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value 2', 'test value 2');")
+	check(err)
 }
+
 
 func TestAppHandleGET(t *testing.T) {
 
@@ -106,10 +112,8 @@ func TestAppHandleGET(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(Handler))
 	defer ts.Close()
 
-	res := request("PUT", ts.URL+"/veil_test_resource", "{\"test_field_1\":\"fgfg\", \"test_field_2\":\"fgfg\"}")
-	res = request("PUT", ts.URL+"/veil_test_resource", "{\"test_field_1\":\"fgfg\", \"test_field_2\":\"fgfg\"}")
 
-	res = request("GET", ts.URL+"/veil_test_resource", "")
+	res := request("GET", ts.URL+"/veil_test_resource", "")
 
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
@@ -169,21 +173,14 @@ func TestAppHandlePOST(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(Handler))
 	defer ts.Close()
 
-	res := request("PUT", ts.URL+"/veil_test_resource", "{\"test_field_1\":\"fgfg\", \"test_field_2\":\"fgfg\"}")
 
-	if res.StatusCode != 201 {
-		log.Fatal(fmt.Sprint("PUT expected a 201, got ", res.StatusCode))
-	}
-
-	res = request("POST", ts.URL+"/veil_test_resource/1", "{\"test_field_1\":\"123\", \"test_field_2\":\"123\"}")
+	res := request("POST", ts.URL+"/veil_test_resource/1", "{\"test_field_1\":\"123\", \"test_field_2\":\"123\"}")
 
 	if res.StatusCode != 200 {
 		log.Fatal(fmt.Sprint("POST expected a 200, got ", res.StatusCode))
 	}
 
-
 	res = request("GET", ts.URL+"/veil_test_resource", "")
-
 
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
