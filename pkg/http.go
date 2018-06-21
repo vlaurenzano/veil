@@ -3,8 +3,6 @@ package pkg
 import (
 	"net/http"
 	"strings"
-	_ "fmt"
-	_ "encoding/json"
 	"encoding/json"
 	"io/ioutil"
 )
@@ -18,113 +16,118 @@ type Message struct {
 	Message string `json:"message"`
 }
 
-func respond(w http.ResponseWriter, status int, message string) {
+
+func MessageResponse(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
 	m := Message{Message: message}
 	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
 	enc.Encode(&m)
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-
+func ObjectResponse(w http.ResponseWriter, status int, object interface{}) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	enc := json.NewEncoder(w)
+	enc.Encode(object)
+}
 
-	storage, err := NewStorage()
+func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
+
+	segments := parsePath(r.URL.Path)
+
+	//params := r.URL.Query()
+	//_ = params.Get("limit")
+
+	resource := Resource{segments[len(segments)-1]}
+
+	result, err := storage.Read(resource)
 
 	if err != nil {
-		respond(w, 400, "an error occurred")
+		MessageResponse(w, err.Code, err.Message)
+	} else {
+		ObjectResponse(w, 200, result.Data)
 	}
+}
+
+func HandlePut(w http.ResponseWriter, r *http.Request, storage Storage) {
+	segments := parsePath(r.URL.Path)
+	b, _ := ioutil.ReadAll(r.Body)
+
+	record := Record{}
+	e := json.Unmarshal(b, &record)
+	if e != nil {
+		MessageResponse(w, 400, "payload could not be parsed")
+		return
+	}
+
+	resource := Resource{segments[len(segments)-1]}
+	result, err := storage.Create(resource, record)
+
+	if err != nil {
+		MessageResponse(w, err.Code, err.Message)
+	} else {
+		_ = result //todo check if something was inserted
+		MessageResponse(w, 201, "success")
+	}
+
+}
+
+func HandlePost(w http.ResponseWriter, r *http.Request, storage Storage) {
+	segments := parsePath(r.URL.Path)
+	b, _ := ioutil.ReadAll(r.Body)
+	record := Record{}
+	e := json.Unmarshal(b, &record)
+	if e != nil {
+		MessageResponse(w, 400, "payload could not be parsed")
+		return
+	}
+
+	record["id"] = segments[len(segments)-1]
+	resource := Resource{segments[len(segments)-2]}
+	result, err := storage.Update(resource, record)
+	if err != nil {
+		MessageResponse(w, err.Code, err.Message)
+	} else {
+		_ = result
+		MessageResponse(w, 200, "success")
+	}
+}
+
+func HandleDelete(w http.ResponseWriter, r *http.Request, storage Storage) {
+	segments := parsePath(r.URL.Path)
+	record := Record{}
+	record["id"] = segments[len(segments)-1]
+	resource := Resource{segments[len(segments)-2]}
+	result, err := storage.Delete(resource, record)
+	if err != nil {
+		MessageResponse(w, err.Code, err.Message)
+	} else {
+		_ = result //todo check if something was inserted
+		MessageResponse(w, 200, "success")
+	}
+}
+
+func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 	switch r.Method {
 
 	case "GET":
-
-		segments := parsePath(r.URL.Path)
-		params := r.URL.Query()
-		test := params.Get("limit")
-		_ = test
-
-		resource := Resource{segments[len(segments)-1]}
-
-		result, err := storage.Read(resource)
-
-		if err != nil {
-			respond(w, err.Code, err.Message)
-			return
-		} else {
-			w.WriteHeader(200)
-			enc := json.NewEncoder(w)
-			enc.Encode(result.Data)
-		}
+		HandleGet(w, r, storage)
 
 	case "PUT":
-		segments := parsePath(r.URL.Path)
-		b, _ := ioutil.ReadAll(r.Body)
-		r := Record{}
-		e := json.Unmarshal(b, &r)
-		if e != nil {
-			respond(w, 400, "payload could not be parsed")
-			return
-		}
-		resource := Resource{segments[len(segments)-1]}
-		result, err := storage.Create(resource, r)
-
-		if err != nil {
-			respond(w, err.Code, err.Message)
-			return
-		}
-
-		_ = result //todo check if something was inserted
-		w.WriteHeader(201)
-		m := Message{"success"}
-		enc := json.NewEncoder(w)
-		enc.Encode(m)
+		HandlePut(w, r, storage)
 
 	case "POST":
-		segments := parsePath(r.URL.Path)
-		b, _ := ioutil.ReadAll(r.Body)
-		r := Record{}
-		e := json.Unmarshal(b, &r)
-		if e != nil {
-			respond(w, 400, "payload could not be parsed")
-			return
-		}
-
-		r["id"] = segments[len(segments)-1]
-		resource := Resource{segments[len(segments)-2]}
-		result, err := storage.Update(resource, r)
-		if err != nil {
-			respond(w, err.Code, err.Message)
-			return
-		}
-
-		_ = result //todo check if something was inserted
-		w.WriteHeader(200)
-		m := Message{"success"}
-		enc := json.NewEncoder(w)
-		enc.Encode(m)
+		HandlePost(w, r, storage)
 
 	case "DELETE":
-		segments := parsePath(r.URL.Path)
-		r := Record{}
-		r["id"] = segments[len(segments)-1]
-		resource := Resource{segments[len(segments)-2]}
-		result, err := storage.Delete(resource, r)
-		if err != nil {
-			respond(w, err.Code, err.Message)
-			return
-		}
-
-		_ = result //todo check if something was inserted
-		w.WriteHeader(200)
-		m := Message{"success"}
-		enc := json.NewEncoder(w)
-		enc.Encode(m)
+		HandleDelete(w, r, storage)
 
 	case "OPTIONS":
-		respond(w,200,"")
+		MessageResponse(w, 200, "")
 	default:
-		respond(w,400,"Unsupported method")
+		MessageResponse(w, 400, "Unsupported method")
 
 	}
 

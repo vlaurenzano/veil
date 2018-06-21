@@ -15,16 +15,14 @@ func envOrDefault(env string, def string) string{
 	return def
 }
 
-var config Configuration;
+var config *Configuration
 
-func Config() Configuration{
-	if config == (Configuration{}) {
-		NewConfig()
+func Config() *Configuration{
+	if config == nil {
+		config = &Configuration{}
+		config.DB = envOrDefault("VEIL_DB", "MYSQL")
+		config.ConnectionString = envOrDefault("VEIL_DB_CONN", "root:root@tcp(127.0.0.1:3306)/veil")
 	}
 	return config
 }
 
-func NewConfig(){
-	config.DB = envOrDefault("VEIL_DB", "MYSQL")
-	config.ConnectionString = envOrDefault("VEIL_DB_CONN", "root:root@tcp(127.0.0.1:3306)/veil")
-}

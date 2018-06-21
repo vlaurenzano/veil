@@ -71,12 +71,19 @@ func initTestTable() {
 	check(err)
 }
 
+func testHandlerFunc(w http.ResponseWriter, r *http.Request){
+	storage, err := NewStorage()
+	if err != nil {
+		log.Fatal(fmt.Sprint("Error connecting to database"))
+	}
+	Handler(w, r, storage)
+}
 
 func TestAppHandleGET(t *testing.T) {
 
 	initTestTable()
 
-	ts := httptest.NewServer(http.HandlerFunc(Handler))
+	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
 
 
@@ -112,7 +119,7 @@ func TestAppHandlePUT(t *testing.T) {
 
 	initTestTable()
 
-	ts := httptest.NewServer(http.HandlerFunc(Handler))
+	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
 
 	res := request("PUT", ts.URL+"/veil_test_resource", "{\"test_field_1\":\"fgfg\", \"test_field_2\":\"fgfg\"}")
@@ -137,7 +144,7 @@ func TestAppHandlePOST(t *testing.T) {
 
 	initTestTable()
 
-	ts := httptest.NewServer(http.HandlerFunc(Handler))
+	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
 
 
@@ -180,7 +187,7 @@ func TestAppHandleDELETE(t *testing.T) {
 
 	initTestTable()
 
-	ts := httptest.NewServer(http.HandlerFunc(Handler))
+	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
 
 
