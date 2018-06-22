@@ -121,6 +121,7 @@ func HandlePut(w http.ResponseWriter, r *http.Request, storage Storage) {
 		status := 200
 		if result.Created != 0 {
 			status = 201
+			result.Message = "success"
 		}
 		ObjectResponse(w,status,result)
 	}
