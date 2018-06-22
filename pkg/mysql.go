@@ -72,7 +72,7 @@ func (m *MySqlStorage) Create(resource Resource, record Record) (*Result, *Stora
 	return &result, nil
 }
 
-func (m *MySqlStorage) Read(resource Resource, offset int, limit int) (result *Result, err *StorageError) {
+func (m *MySqlStorage) Read(resource Resource, match *Record, offset int, limit int) (result *Result, err *StorageError) {
 
 
 	//todo: improve this validation, we can't parameterize the dynamic table name
@@ -81,7 +81,23 @@ func (m *MySqlStorage) Read(resource Resource, offset int, limit int) (result *R
 		return nil, &StorageError{Code: 404, Message: "resource not found"}
 	}
 
-	sqlString := fmt.Sprintf("SELECT * FROM %s LIMIT ?, ?", resource.Identifier)
+	sqlString := fmt.Sprintf("SELECT * FROM %s ", resource.Identifier)
+
+	var paramValues []interface{}
+	var paramKeys []string
+	if *match != nil {
+		sqlString += "WHERE "
+		for k, v := range *match {
+			paramValues = append(paramValues, v)
+			paramKeys = append(paramKeys, k + " = ?")
+		}
+		sqlString += strings.Join(paramKeys, " AND ")
+	}
+
+	paramValues = append(paramValues, offset)
+	paramValues = append(paramValues, limit)
+
+	sqlString += " LIMIT ?, ?"
 
 	db, err := m.dbConnect()
 	if err != nil {
@@ -95,7 +111,8 @@ func (m *MySqlStorage) Read(resource Resource, offset int, limit int) (result *R
 	}
 	defer stmt.Close()
 
-	rows, e := stmt.Query(offset, limit)
+	rows, e := stmt.Query(paramValues...)
+
 	if err = interpretMysqlError(e); err != nil {
 		return nil, err
 	}

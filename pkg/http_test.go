@@ -67,17 +67,13 @@ func initTestTable() {
 }
 
 func addXRows(x int) {
-
 	db, err := sql.Open("mysql", Config().ConnectionString)
 	defer db.Close()
-
 	for i := 0; i < x; i++ {
 
 		_, err = db.Exec(fmt.Sprintf("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value %d', 'test value %d');", i, i))
 		check(err)
 	}
-
-
 }
 
 func testHandlerFunc(w http.ResponseWriter, r *http.Request){
@@ -99,29 +95,27 @@ func TestAppHandleGET(t *testing.T) {
 
 	res := request("GET", ts.URL+"/veil_test_resource", "")
 
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	j := loadResponseBody(res)
 
-	check(err)
-
-	var j []interface{}
-
-	err = json.Unmarshal(body, &j)
-	check(err)
-
-	if len(j) != 2 {
+	if res.StatusCode != 200 || len(j) != 2 {
 		log.Fatal("Test App Handler GET did not return the right amount of records")
 	}
 
 	res = request("GET", ts.URL+"/veil_test_not_exist", "")
 
-	body, err = ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	check(err)
-
 	if res.StatusCode != 404 {
 		log.Fatal(fmt.Sprint("GET expected a 404, got ", res.StatusCode))
 	}
+
+	res = request("GET", ts.URL+"/veil_test_resource/1", "")
+	j = loadResponseBody(res)
+
+
+	if res.StatusCode != 200 || len(j) != 1 {
+		log.Fatal(fmt.Sprint("Tried receiving record by id, received bad response ", res.StatusCode))
+	}
+
+
 }
 
 func loadResponseBody(res *http.Response) []interface{}{

@@ -58,6 +58,17 @@ func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 
 	segments := parsePath(r.URL.Path)
+
+	var record Record
+	var resource Resource
+
+	if len(segments) == 2 {
+		record = Record{"id": segments[1]}
+		resource = Resource{segments[len(segments)-2]}
+	} else {
+		resource = Resource{segments[len(segments)-1]}
+	}
+
 	params := r.URL.Query()
 
 	offset, e := intParamOrDefault(params, "offset",0)
@@ -72,9 +83,8 @@ func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
 		return
 	}
 
-	resource := Resource{segments[len(segments)-1]}
 
-	result, err := storage.Read(resource, offset, limit)
+	result, err := storage.Read(resource, &record, offset, limit)
 
 	if err != nil {
 		MessageResponse(w, err.Code, err.Message)
@@ -100,8 +110,11 @@ func HandlePut(w http.ResponseWriter, r *http.Request, storage Storage) {
 	if err != nil {
 		MessageResponse(w, err.Code, err.Message)
 	} else {
-		_ = result //todo check if something was inserted
-		MessageResponse(w, 201, "success")
+		status := 200
+		if result.Created != 0 {
+			status = 201
+		}
+		ObjectResponse(w,status,result)
 	}
 
 }

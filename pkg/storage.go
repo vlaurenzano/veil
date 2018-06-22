@@ -18,10 +18,10 @@ func (e *StorageError) Error() string {
 
 //provides an abstraction for the database layer
 type Storage interface {
-	Create(resource Resource, record Record) (*Result, *StorageError)
-	Read(resource Resource, offset int, limit int) (*Result, *StorageError)
-	Update(resource Resource, record Record) (*Result, *StorageError)
-	Delete(resource Resource, record Record) (*Result, *StorageError)
+	Create(resource Resource, record Record) (*Result, *StorageError) //Creates an entry in the data store, intended for use with PUT
+	Read(resource Resource, match *Record, offset int, limit int) (*Result, *StorageError) //Reads from the data store, intended for use with GET
+	Update(resource Resource, record Record) (*Result, *StorageError) //Updates a record in the data store
+	Delete(resource Resource, record Record) (*Result, *StorageError) //Deletes a record in the data store
 }
 
 //a resource represents the table or document within the database
