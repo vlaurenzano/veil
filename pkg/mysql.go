@@ -42,7 +42,7 @@ func interpretMysqlError(err error) (*StorageError) {
 	return nil
 }
 
-func (m *MySqlStorage) Create(resource Resource, record Record) (*Result, *StorageError) {
+func (m *MySqlStorage) Create(resource Resource, record Record) (*Response, *StorageError) {
 	db, err := m.dbConnect()
 	if err != nil {
 		return nil, err
@@ -68,11 +68,11 @@ func (m *MySqlStorage) Create(resource Resource, record Record) (*Result, *Stora
 		return nil, err
 	}
 
-	result := Result{Created: 1}
+	result := Response{Created: 1}
 	return &result, nil
 }
 
-func (m *MySqlStorage) Read(resource Resource, match *Record, offset int, limit int) (result *Result, err *StorageError) {
+func (m *MySqlStorage) Read(resource Resource, match *Record, offset int, limit int) (result *Response, err *StorageError) {
 
 
 	//todo: improve this validation, we can't parameterize the dynamic table name
@@ -152,10 +152,10 @@ func (m *MySqlStorage) Read(resource Resource, match *Record, offset int, limit 
 
 		tableData = append(tableData, entry)
 	}
-	return &Result{Data: tableData}, nil
+	return &Response{Data: tableData}, nil
 }
 
-func (m *MySqlStorage) Update(resource Resource, record Record) (*Result, *StorageError) {
+func (m *MySqlStorage) Update(resource Resource, record Record) (*Response, *StorageError) {
 
 	db, err := m.dbConnect()
 	if err != nil {
@@ -189,10 +189,10 @@ func (m *MySqlStorage) Update(resource Resource, record Record) (*Result, *Stora
 		return nil, err
 	}
 
-	return &Result{Updated:rows}, nil
+	return &Response{Updated:rows}, nil
 }
 
-func (m *MySqlStorage) Delete(resource Resource, record Record) (*Result, *StorageError) {
+func (m *MySqlStorage) Delete(resource Resource, record Record) (*Response, *StorageError) {
 
 	db, err := m.dbConnect()
 	if err != nil {
@@ -215,5 +215,5 @@ func (m *MySqlStorage) Delete(resource Resource, record Record) (*Result, *Stora
 	if err = interpretMysqlError(e); err != nil {
 		return nil, err
 	}
-	return &Result{Deleted:rows}, nil
+	return &Response{Deleted:rows}, nil
 }

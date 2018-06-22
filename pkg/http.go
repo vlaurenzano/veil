@@ -14,14 +14,18 @@ func parsePath(path string) []string {
 	return segments[1:]
 }
 
-type Message struct {
+type Response struct {
+	Data    Records   //if the db returns data it will be reflected here
+	Created int64     //if the db inserts data it will be reflected here
+	Updated int64     //if the db updates data it will be reflected here
+	Deleted int64     //if the db deletes data it will be reflected here
 	Message string `json:"message"`
 }
 
 
 func MessageResponse(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
-	m := Message{Message: message}
+	m := Response{Message: message}
 	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
 	enc.Encode(&m)
@@ -91,7 +95,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
 		if len(result.Data) == 0 {
 			MessageResponse(w, 404, "no records found")
 		} else {
-			ObjectResponse(w, 200, result.Data)
+			ObjectResponse(w, 200, result)
 		}
 
 	}
@@ -139,8 +143,7 @@ func HandlePost(w http.ResponseWriter, r *http.Request, storage Storage) {
 	if err != nil {
 		MessageResponse(w, err.Code, err.Message)
 	} else {
-		_ = result
-		MessageResponse(w, 200, "success")
+		ObjectResponse(w,200,result)
 	}
 }
 
@@ -153,8 +156,7 @@ func HandleDelete(w http.ResponseWriter, r *http.Request, storage Storage) {
 	if err != nil {
 		MessageResponse(w, err.Code, err.Message)
 	} else {
-		_ = result //todo check if something was inserted
-		MessageResponse(w, 200, "success")
+		ObjectResponse(w,200,result)
 	}
 }
 

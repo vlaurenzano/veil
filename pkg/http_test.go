@@ -97,7 +97,7 @@ func TestAppHandleGET(t *testing.T) {
 
 	j := loadResponseBody(res)
 
-	if res.StatusCode != 200 || len(j) != 2 {
+	if res.StatusCode != 200 || len(j.Data) != 2 {
 		log.Fatal("Test App Handler GET did not return the right amount of records")
 	}
 
@@ -112,7 +112,7 @@ func TestAppHandleGET(t *testing.T) {
 	j = loadResponseBody(res)
 
 
-	if res.StatusCode != 200 || len(j) != 1 {
+	if res.StatusCode != 200 || len(j.Data) != 1 {
 		log.Fatal(fmt.Sprint("Tried receiving record by id, received bad response ", res.StatusCode))
 	}
 
@@ -125,12 +125,12 @@ func TestAppHandleGET(t *testing.T) {
 
 }
 
-func loadResponseBody(res *http.Response) []interface{}{
+func loadResponseBody(res *http.Response) Response{
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	check(err)
 
-	var j []interface{}
+	var j Response
 
 	err = json.Unmarshal(body, &j)
 	check(err)
@@ -146,14 +146,14 @@ func TestAppHandlerGETWithLimitsAndOffsets(t *testing.T){
 	res := request("GET", ts.URL+"/veil_test_resource?limit=3", "")
 	j := loadResponseBody(res)
 
-	if len(j) != 3 {
+	if len(j.Data) != 3 {
 		log.Fatal("Test App Handler GET did not return the right amount of records")
 	}
 
 	res = request("GET", ts.URL+"/veil_test_resource?offset=4&limit=3", "")
 	j = loadResponseBody(res)
 
-	if len(j) != 1 {
+	if len(j.Data) != 1 {
 		log.Fatal("Test App Handler GET did not return the right amount of records")
 	}
 
@@ -203,17 +203,9 @@ func TestAppHandlePOST(t *testing.T) {
 
 	res = request("GET", ts.URL+"/veil_test_resource", "")
 
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	j := loadResponseBody(res)
 
-	check(err)
-
-	var j Records
-
-	err = json.Unmarshal(body, &j)
-	check(err)
-
-	if j[0]["test_field_1"] != "123" {
+	if j.Data[0]["test_field_1"] != "123" {
 		log.Fatal("Record not properly updated")
 	}
 
