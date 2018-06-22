@@ -108,11 +108,18 @@ func TestAppHandleGET(t *testing.T) {
 	}
 
 	res = request("GET", ts.URL+"/veil_test_resource/1", "")
+
 	j = loadResponseBody(res)
 
 
 	if res.StatusCode != 200 || len(j) != 1 {
 		log.Fatal(fmt.Sprint("Tried receiving record by id, received bad response ", res.StatusCode))
+	}
+
+	res = request("GET", ts.URL+"/veil_test_resource/11", "")
+
+	if res.StatusCode != 404 {
+		log.Fatal(fmt.Sprint("Tried receiving an uknown record by id, expected 404 received ", res.StatusCode))
 	}
 
 

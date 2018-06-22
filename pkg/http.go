@@ -85,11 +85,15 @@ func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 
 	result, err := storage.Read(resource, &record, offset, limit)
-
 	if err != nil {
 		MessageResponse(w, err.Code, err.Message)
 	} else {
-		ObjectResponse(w, 200, result.Data)
+		if len(result.Data) == 0 {
+			MessageResponse(w, 404, "no records found")
+		} else {
+			ObjectResponse(w, 200, result.Data)
+		}
+
 	}
 }
 
