@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"github.com/go-sql-driver/mysql"
+	"regexp"
 )
 
 type MySqlStorage struct {
@@ -71,9 +72,16 @@ func (m *MySqlStorage) Create(resource Resource, record Record) (*Result, *Stora
 	return &result, nil
 }
 
-func (m *MySqlStorage) Read(resource Resource) (result *Result, err *StorageError) {
+func (m *MySqlStorage) Read(resource Resource, offset int, limit int) (result *Result, err *StorageError) {
 
-	sqlString := fmt.Sprintf("SELECT * FROM %s", resource.Identifier)
+
+	//todo: improve this validation, we can't parameterize the dynamic table name
+	notOk, e := regexp.Match("[;'\"\\\\]",[]byte(resource.Identifier))
+	if notOk || e != nil {
+		return nil, &StorageError{Code: 404, Message: "resource not found"}
+	}
+
+	sqlString := fmt.Sprintf("SELECT * FROM %s LIMIT ?, ?", resource.Identifier)
 
 	db, err := m.dbConnect()
 	if err != nil {
@@ -87,7 +95,7 @@ func (m *MySqlStorage) Read(resource Resource) (result *Result, err *StorageErro
 	}
 	defer stmt.Close()
 
-	rows, e := stmt.Query()
+	rows, e := stmt.Query(offset, limit)
 	if err = interpretMysqlError(e); err != nil {
 		return nil, err
 	}
@@ -118,7 +126,7 @@ func (m *MySqlStorage) Read(resource Resource) (result *Result, err *StorageErro
 			v := values[i]
 
 			b, ok := v.([]byte)
-			if (ok) {
+			if ok {
 				entry[col] = string(b)
 			} else {
 				entry[col] = v

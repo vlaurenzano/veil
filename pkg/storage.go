@@ -19,7 +19,7 @@ func (e *StorageError) Error() string {
 //provides an abstraction for the database layer
 type Storage interface {
 	Create(resource Resource, record Record) (*Result, *StorageError)
-	Read(resource Resource) (*Result, *StorageError)
+	Read(resource Resource, offset int, limit int) (*Result, *StorageError)
 	Update(resource Resource, record Record) (*Result, *StorageError)
 	Delete(resource Resource, record Record) (*Result, *StorageError)
 }

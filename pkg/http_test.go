@@ -64,11 +64,20 @@ func initTestTable() {
 		PRIMARY KEY (id)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 	check(err)
+}
 
-	_, err = db.Exec("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value 1', 'test value 1');")
-	check(err)
-	_, err = db.Exec("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value 2', 'test value 2');")
-	check(err)
+func addXRows(x int) {
+
+	db, err := sql.Open("mysql", Config().ConnectionString)
+	defer db.Close()
+
+	for i := 0; i < x; i++ {
+
+		_, err = db.Exec(fmt.Sprintf("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value %d', 'test value %d');", i, i))
+		check(err)
+	}
+
+
 }
 
 func testHandlerFunc(w http.ResponseWriter, r *http.Request){
@@ -82,6 +91,7 @@ func testHandlerFunc(w http.ResponseWriter, r *http.Request){
 func TestAppHandleGET(t *testing.T) {
 
 	initTestTable()
+	addXRows(2)
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -114,10 +124,45 @@ func TestAppHandleGET(t *testing.T) {
 	}
 }
 
+func loadResponseBody(res *http.Response) []interface{}{
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	check(err)
+
+	var j []interface{}
+
+	err = json.Unmarshal(body, &j)
+	check(err)
+	return j
+}
+
+func TestAppHandlerGETWithLimitsAndOffsets(t *testing.T){
+	initTestTable()
+	addXRows(5)
+	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
+	defer ts.Close()
+
+	res := request("GET", ts.URL+"/veil_test_resource?limit=3", "")
+	j := loadResponseBody(res)
+
+	if len(j) != 3 {
+		log.Fatal("Test App Handler GET did not return the right amount of records")
+	}
+
+	res = request("GET", ts.URL+"/veil_test_resource?offset=4&limit=3", "")
+	j = loadResponseBody(res)
+
+	if len(j) != 1 {
+		log.Fatal("Test App Handler GET did not return the right amount of records")
+	}
+
+}
+
 
 func TestAppHandlePUT(t *testing.T) {
 
 	initTestTable()
+	addXRows(2)
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -143,6 +188,7 @@ func TestAppHandlePUT(t *testing.T) {
 func TestAppHandlePOST(t *testing.T) {
 
 	initTestTable()
+	addXRows(2)
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -186,6 +232,7 @@ func TestAppHandlePOST(t *testing.T) {
 func TestAppHandleDELETE(t *testing.T) {
 
 	initTestTable()
+	addXRows(2)
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
