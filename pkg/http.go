@@ -157,7 +157,11 @@ func HandleDelete(w http.ResponseWriter, r *http.Request, storage Storage) {
 	if err != nil {
 		MessageResponse(w, err.Code, err.Message)
 	} else {
-		ObjectResponse(w,200,result)
+		if result.Deleted == 0 {
+			MessageResponse(w, 404, "record not found")
+		} else {
+			ObjectResponse(w,200,result)
+		}
 	}
 }
 

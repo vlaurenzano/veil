@@ -76,6 +76,11 @@ func addXRows(x int) {
 	}
 }
 
+func setUpIntegrationTest() {
+	initTestTable()
+	addXRows(2)
+}
+
 func testHandlerFunc(w http.ResponseWriter, r *http.Request){
 	storage, err := NewStorage()
 	if err != nil {
@@ -86,8 +91,7 @@ func testHandlerFunc(w http.ResponseWriter, r *http.Request){
 
 func TestAppHandleGET(t *testing.T) {
 
-	initTestTable()
-	addXRows(2)
+	setUpIntegrationTest()
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -162,8 +166,7 @@ func TestAppHandlerGETWithLimitsAndOffsets(t *testing.T){
 
 func TestAppHandlePUT(t *testing.T) {
 
-	initTestTable()
-	addXRows(2)
+	setUpIntegrationTest()
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -188,8 +191,7 @@ func TestAppHandlePUT(t *testing.T) {
 
 func TestAppHandlePOST(t *testing.T) {
 
-	initTestTable()
-	addXRows(2)
+	setUpIntegrationTest()
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -215,17 +217,12 @@ func TestAppHandlePOST(t *testing.T) {
 		log.Fatal(fmt.Sprint("GET expected a 404, got ", res.StatusCode))
 	}
 
-	//res = request("POST", ts.URL+"/veil_test_resource/3", "{\"test_field_1\":\"t\"}")
-	//if res.StatusCode != 404 {
-	//	log.Fatal(fmt.Sprint("GET expected a 400, got ", res.StatusCode))
-	//}
 }
 
 
 func TestAppHandleDELETE(t *testing.T) {
 
-	initTestTable()
-	addXRows(2)
+	setUpIntegrationTest()
 
 	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
 	defer ts.Close()
@@ -237,27 +234,18 @@ func TestAppHandleDELETE(t *testing.T) {
 		log.Fatal(fmt.Sprint("POST expected a 200, got ", res.StatusCode))
 	}
 
+	j := loadResponseBody(res)
+	if j.Deleted != 1 {
+		log.Fatal("delete failed")
+	}
 
+	res = request("DELETE", ts.URL+"/veil_test_resource/1", "{\"test_field_1\":\"123\", \"test_field_2\":\"123\"}")
 
-	//body, err := ioutil.ReadAll(res.Body)
-	//res.Body.Close()
-	//
-	//check(err)
-	//
-	//var j Records
-	//
-	//err = json.Unmarshal(body, &j)
-	//check(err)
-	//
-	//if j[0]["test_field_1"] != "123" {
-	//	log.Fatal("Record not properly updated")
-	//}
-	//
-	//
-	//res = request("POST", ts.URL+"/veil_test_not_exist/1", "{\"test_field_1\":\"t\"}")
-	//if res.StatusCode != 404 {
-	//	log.Fatal(fmt.Sprint("GET expected a 404, got ", res.StatusCode))
-	//}
+	j = loadResponseBody(res)
+
+	if j.Deleted != 0 {
+		log.Fatal("delete failed")
+	}
 
 }
 
