@@ -79,6 +79,9 @@ func addXRows(x int) {
 func setUpIntegrationTest() {
 	initTestTable()
 	addXRows(2)
+	config.PutPermissions = map[string]string{"global": "allow"}
+	config.PostPermissions = map[string]string{"global": "allow"}
+	config.DeletePermissions = map[string]string{"global": "allow"}
 }
 
 func testHandlerFunc(w http.ResponseWriter, r *http.Request){

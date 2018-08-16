@@ -220,19 +220,38 @@ func HandleDelete(w http.ResponseWriter, r *http.Request, storage Storage) {
 	}
 }
 
+
+
+func checkPermission(r *http.Request) bool {
+	switch r.Method {
+	case "GET":
+		return Config().GetPermissions["global"] == "allow"
+	case "PUT":
+		return Config().PutPermissions["global"] == "allow"
+	case "POST":
+		return Config().PostPermissions["global"] == "allow"
+	case "DELETE":
+		return Config().DeletePermissions["global"] == "allow"
+	default:
+		return true
+	}
+}
+
 func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 
-	switch r.Method {
+	canContinue := checkPermission(r)
+	if !canContinue {
+		MessageResponse(w, 401, "Permission denied")
+		return
+	}
 
+	switch r.Method {
 	case "GET":
 		HandleGet(w, r, storage)
-
 	case "PUT":
 		HandlePut(w, r, storage)
-
 	case "POST":
 		HandlePost(w, r, storage)
-
 	case "DELETE":
 		HandleDelete(w, r, storage)
 
