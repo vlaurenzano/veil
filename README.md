@@ -7,7 +7,7 @@ Veil is a proof of concept, automatic json backend for mysql databases. It works
 
 ## Installation
 
-```got get github.com/vlaurenzano/veil```
+```go get github.com/vlaurenzano/veil/cmd/veil```
 
 ```go get github.com/go-sql-driver/mysql```
 
