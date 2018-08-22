@@ -242,6 +242,7 @@ func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 	canContinue := checkPermission(r)
 	if !canContinue {
 		MessageResponse(w, 401, "Permission denied")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		return
 	}
 
@@ -261,5 +262,5 @@ func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 		MessageResponse(w, 400, "Unsupported method")
 
 	}
-
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 }
