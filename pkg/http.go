@@ -244,7 +244,6 @@ func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 	canContinue := checkPermission(r)
 	if !canContinue {
 		MessageResponse(w, 401, "Permission denied")
-
 		return
 	}
 
