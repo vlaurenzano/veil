@@ -239,9 +239,12 @@ func checkPermission(r *http.Request) bool {
 
 func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	canContinue := checkPermission(r)
 	if !canContinue {
 		MessageResponse(w, 401, "Permission denied")
+
 		return
 	}
 
