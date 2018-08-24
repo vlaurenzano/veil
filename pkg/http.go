@@ -101,7 +101,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 func HandleGetMulti(w http.ResponseWriter, r *http.Request, storage Storage) {
 	segments := parsePath(r.URL.Path)
-	record := make(Record)
+	var record Record
 	var resource Resource
 	resource = Resource{segments[len(segments)-1]}
 	params := r.URL.Query()
@@ -128,7 +128,9 @@ func HandleGetMulti(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 	for key, value := range r.URL.Query(){
 		if key != "limit" && key != "offset" {
-
+			if record == nil{
+				record = Record{}
+			}
 			record[key] = value[0]
 		}
 	}
