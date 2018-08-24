@@ -101,7 +101,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 func HandleGetMulti(w http.ResponseWriter, r *http.Request, storage Storage) {
 	segments := parsePath(r.URL.Path)
-	var record Record
+	record := make(Record)
 	var resource Resource
 	resource = Resource{segments[len(segments)-1]}
 	params := r.URL.Query()
@@ -125,6 +125,15 @@ func HandleGetMulti(w http.ResponseWriter, r *http.Request, storage Storage) {
 	if offset < 0 {
 		offset = 0
 	}
+
+	for key, value := range r.URL.Query(){
+		if key != "limit" && key != "offset" {
+
+			record[key] = value[0]
+		}
+	}
+
+
 
 	result, err := storage.Read(resource, &record, offset, limit)
 	if err != nil {
@@ -222,28 +231,15 @@ func HandleDelete(w http.ResponseWriter, r *http.Request, storage Storage) {
 
 
 
-func checkPermission(r *http.Request) bool {
-	switch r.Method {
-	case "GET":
-		return Config().GetPermissions["global"] == "allow"
-	case "PUT":
-		return Config().PutPermissions["global"] == "allow"
-	case "POST":
-		return Config().PostPermissions["global"] == "allow"
-	case "DELETE":
-		return Config().DeletePermissions["global"] == "allow"
-	default:
-		return true
-	}
-}
-
 func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	con := Context{Continue: true, Req: r, Write: w, Config: Config()}
 
-	canContinue := checkPermission(r)
-	if !canContinue {
-		MessageResponse(w, 401, "Permission denied")
+
+	AccesHeaders(&con)
+	Permissions(&con)
+
+	if !con.Continue {
 		return
 	}
 

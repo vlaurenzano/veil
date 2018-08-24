@@ -71,7 +71,7 @@ func addXRows(x int) {
 	defer db.Close()
 	for i := 0; i < x; i++ {
 
-		_, err = db.Exec(fmt.Sprintf("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test value %d', 'test value %d');", i, i))
+		_, err = db.Exec(fmt.Sprintf("INSERT INTO veil_test_resource (test_field_1, test_field_2) VALUES ('test_value_%d', 'test value %d');", i, i))
 		check(err)
 	}
 }
@@ -163,6 +163,21 @@ func TestAppHandlerGETWithLimitsAndOffsets(t *testing.T){
 	if len(j.Data) != 1 {
 		log.Fatal("Test App Handler GET did not return the right amount of records")
 	}
+
+}
+func TestAppHandlerGETWithFilters(t *testing.T){
+	initTestTable()
+	addXRows(5)
+	ts := httptest.NewServer(http.HandlerFunc(testHandlerFunc))
+	defer ts.Close()
+
+	res := request("GET", ts.URL+"/veil_test_resource?test_field_1=test_value_1", "")
+	j := loadResponseBody(res)
+
+	if len(j.Data) != 1 {
+		log.Fatal("Test App Handler GET did not return the right amount of records")
+	}
+
 
 }
 
