@@ -238,7 +238,7 @@ func Handler(w http.ResponseWriter, r *http.Request, storage Storage) {
 	con := Context{Continue: true, Req: r, Write: w, Config: Config()}
 
 
-	AccesHeaders(&con)
+	AccessHeaders(&con)
 	Permissions(&con)
 
 	if !con.Continue {

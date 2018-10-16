@@ -13,10 +13,11 @@ type Context struct {
 }
 
 //sets our access control headers
-func AccesHeaders(c *Context) {
+func AccessHeaders(c *Context) {
 	c.Write.Header().Set("Access-Control-Allow-Origin", "*")
 }
 
+//our filter to checck permissions
 func Permissions(c *Context) {
 	switch c.Req.Method {
 	case "GET":
