@@ -93,9 +93,11 @@ Content-Length: 425
 {"status":200,"message":"","data":[{"id":2,"test_field_1":"123","test_field_2":"123"}],"created":0,"updated":0,"deleted":0,"links":[{"rel":"self","href":"http://localhost:8080/test_resource?limit=1\u0026offset=1","method":"GET"},{"rel":"prev","href":"http://localhost:8080/test_resource?offset=0\u0026limit=1","method":"GET"},{"rel":"next","href":"http://localhost:8080/test_resource?offset=2\u0026limit=1","method":"GET"}]}
 
 ```
-#### Update
+### Update -- POST
 
 ```
+curl -i -X POST -H "Content-Type:application/json" http://localhost:8080/test_resource/1 -d '{"test_field_1":"321", "test_field_2":"321"}'
+ 
 HTTP/1.1 200 OK
 Access-Control-Allow-Origin: *
 Content-Type: application/json
@@ -106,7 +108,7 @@ Content-Length: 89
 
 ```
 
-#### Delete
+### Delete - DELETE
 
 ```
 curl -i -X DELETE -H "Content-Type:application/json" http://localhost:8080/test_resource/1                                            
