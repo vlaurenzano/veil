@@ -29,14 +29,13 @@ Veil handles CRUD via RESTFUL endpoints out of the box.
 Put requests place a record in the resource determined by url. Presently PUT does not upsert, nor does it allow for inserting known ids.
 
 ```
-curl -i -X PUT -H "Content-Type:application/json" http://localhost:8080/test_resource -d '{"test_field_1":"123", "test_field_2":"123"}'
 HTTP/1.1 201 Created
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Fri, 22 Jun 2018 22:52:23 GMT
-Content-Length: 70
+Date: Wed, 17 Oct 2018 01:42:24 GMT
+Content-Length: 96
 
-{"Data":null,"Created":1,"Updated":0,"Deleted":0,"message":"success"}
-
+{"status":201,"message":"success","data":null,"created":1,"updated":0,"deleted":0,"links":null}
 ```
 
 ### Read -- GET
@@ -51,21 +50,13 @@ Veil will retrieve all records, up to the configuration limits, by querying for 
 ```
 curl -i -X GET -H "Content-Type:application/json" http://localhost:8080/test_resource          
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Fri, 22 Jun 2018 22:53:05 GMT
-Content-Length: 213
+Date: Wed, 17 Oct 2018 01:42:57 GMT
+Content-Length: 413
 
-{
-    "Data": [
-            {"id":1,"test_field_1":"123","test_field_2":"123"},
-            {"id":2,"test_field_1":"123","test_field_2":"123"},
-            {"id":3,"test_field_1":"123","test_field_2":"123"}
-    ],
-    "Created":0,
-    "Updated":0,
-    "Deleted":0,
-    "message":""
-}
+{"status":200,"message":"","data":[{"id":1,"test_field_1":"123","test_field_2":"123"},{"id":2,"test_field_1":"123","test_field_2":"123"},{"id":3,"test_field_1":"123","test_field_2":"123"},{"id":4,"test_field_1":"123","test_field_2":"123"},{"id":5,"test_field_1":"123","test_field_2":"123"}],"created":0,"updated":0,"deleted":0,"links":[{"rel":"self","href":"http://localhost:8080/test_resource","method":"GET"}]}
+
 ```
 
 #### By ID
@@ -74,65 +65,45 @@ Veil can retrieve a singular resource by id. Note: for consistency with retrievi
 ```
 curl -i -X GET -H "Content-Type:application/json" http://localhost:8080/test_resource/1          
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Fri, 22 Jun 2018 22:54:24 GMT
-Content-Length: 111
+Date: Wed, 17 Oct 2018 01:44:25 GMT
+Content-Length: 211
 
-{
-    "Data": [
-            {"id":1,"test_field_1":"123","test_field_2":"123"}
-     ],
-    "Created":0,
-    "Updated":0,
-    "Deleted":0,
-    "message":""
-}
+{"status":200,"message":"","data":[{"id":1,"test_field_1":"123","test_field_2":"123"}],"created":0,"updated":0,"deleted":0,"links":[{"rel":"self","href":"http://localhost:8080/test_resource/1","method":"GET"}]}
+
 
 ### More examples
 
 curl -i -X GET -H "Content-Type:application/json" http://localhost:8080/test_resource?limit=1
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Fri, 22 Jun 2018 22:59:59 GMT
-Content-Length: 111
+Date: Wed, 17 Oct 2018 01:45:09 GMT
+Content-Length: 314
 
-{
-    "Data":[
-        {"id":1,"test_field_1":"123","test_field_2":"123"}
-    ],
-    "Created":0,
-    "Updated":0,
-    "Deleted":0,
-    "message":""
-}
+{"status":200,"message":"","data":[{"id":1,"test_field_1":"123","test_field_2":"123"}],"created":0,"updated":0,"deleted":0,"links":[{"rel":"self","href":"http://localhost:8080/test_resource?limit=1","method":"GET"},{"rel":"next","href":"http://localhost:8080/test_resource?offset=1\u0026limit=1","method":"GET"}]}
 
-curl -i -X GET -H "Content-Type:application/json" http://localhost:8080/test_resource?limit=1\&offset=1
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Fri, 22 Jun 2018 23:01:33 GMT
-Content-Length: 111
+Date: Wed, 17 Oct 2018 01:45:37 GMT
+Content-Length: 425
 
-{
-    "Data":[
-        {"id":2,"test_field_1":"123","test_field_2":"123"}
-    ],
-    "Created":0,
-    "Updated":0,
-    "Deleted":0,
-    "message":""
-}
+{"status":200,"message":"","data":[{"id":2,"test_field_1":"123","test_field_2":"123"}],"created":0,"updated":0,"deleted":0,"links":[{"rel":"self","href":"http://localhost:8080/test_resource?limit=1\u0026offset=1","method":"GET"},{"rel":"prev","href":"http://localhost:8080/test_resource?offset=0\u0026limit=1","method":"GET"},{"rel":"next","href":"http://localhost:8080/test_resource?offset=2\u0026limit=1","method":"GET"}]}
 
 ```
 #### Update
 
 ```
-curl -i -X POST -H "Content-Type:application/json" http://localhost:8080/test_resource/1 -d '{"test_field_1":"321", "test_field_2":"321"}'
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Sun, 17 Jun 2018 22:06:23 GMT
-Content-Length: 22
+Date: Wed, 17 Oct 2018 01:46:16 GMT
+Content-Length: 89
 
-{"message":"success"}
+{"status":200,"message":"","data":null,"created":0,"updated":1,"deleted":0,"links":null}
+
 ```
 
 #### Delete
@@ -140,9 +111,11 @@ Content-Length: 22
 ```
 curl -i -X DELETE -H "Content-Type:application/json" http://localhost:8080/test_resource/1                                            
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
 Content-Type: application/json
-Date: Sun, 17 Jun 2018 22:06:58 GMT
-Content-Length: 22
+Date: Wed, 17 Oct 2018 01:46:32 GMT
+Content-Length: 89
 
-{"message":"success"}
+{"status":200,"message":"","data":null,"created":0,"updated":0,"deleted":1,"links":null}
+
 ```
