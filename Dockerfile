@@ -4,8 +4,6 @@ FROM golang
 
 RUN go get github.com/vlaurenzano/veil
 
-RUN go  get github.com/go-sql-driver/mysql
-
 ENTRYPOINT /go/bin/veil
 
 EXPOSE 8080

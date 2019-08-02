@@ -1,9 +1,9 @@
 package main
 
 import (
-	"net/http"
-	"log"
+	"github.com/sirupsen/logrus"
 	"github.com/vlaurenzano/veil/pkg"
+	"net/http"
 )
 
 func main(){
@@ -15,5 +15,6 @@ func main(){
 		}
 		pkg.Handler(writer, request, storage)
 	} )
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	logrus.Info("Info: Starting veil server on port 8080")
+	logrus.Fatal(http.ListenAndServe(":8080", nil))
 }

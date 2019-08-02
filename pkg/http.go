@@ -16,7 +16,7 @@ func parsePath(path string) []string {
 }
 
 //our response struct is always used to return data to the client
-//this keeps our api nice anc consistent
+//this keeps our api nice and consistent
 type Response struct {
 	Status  int     `json:"status"`  //our api status code
 	Message string  `json:"message"` //our api message
